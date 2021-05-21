@@ -3,8 +3,10 @@ package sshclient
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/term"
 )
 
 func ConnectByPrivateKey(keyPath, user, host string) (*ssh.Client, *ssh.Session, error) {
@@ -42,14 +44,17 @@ func ConnectByPrivateKey(keyPath, user, host string) (*ssh.Client, *ssh.Session,
 }
 
 func ConnectByPassword(user, host string) (*ssh.Client, *ssh.Session, error) {
-	var pass string
 	fmt.Print("Password: ")
-	fmt.Scanf("%s\n", &pass)
+	// fmt.Scanf("%s\n", &pass)
+	pass, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	config := &ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(pass),
+			ssh.Password(string(pass)),
 		},
 		// TODO: do not use ssh.InsecureIgnoreHostKey()
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
